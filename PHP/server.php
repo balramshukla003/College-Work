@@ -1,39 +1,42 @@
 <?php
-
-$servername = "localhost"; 
-$port = 3306; 
-$username = "root"; 
+// Database configuration
+$servername = "localhost";
+$username = "root";
 $password = "";
-$dbname = "balram"; 
+$dbname = "balram";
 
+// Create a connection
+$conn = mysqli_connect($servername, $username, $password, $dbname);
 
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname, $port);
+// Check the connection
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+} else {
 
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-?>
+    // Check if the form is submitted
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-<?php
-// Include the database connection code
-require 'db_connection.php';
+        // Check if form fields are set
+        $name = isset($_POST['name']) ? mysqli_real_escape_string($conn, $_POST['name']) : '';
+        $email = isset($_POST['email']) ? mysqli_real_escape_string($conn, $_POST['email']) : '';
+        $phone = isset($_POST['number']) ? mysqli_real_escape_string($conn, $_POST['number']) : '';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        // Proceed only if all fields are filled
+        if (!empty($name) && !empty($email) && !empty($phone)) {
+            // SQL query to insert data into the table
+            $sql = "INSERT INTO user (name, email, phone) VALUES ('$name', '$email', '$phone')";
 
-    $name = $_POST['name'];
-    $email = $_POST['email'];
-    $number = $_POST['number'];
-
-    $sql = "INSERT INTO user (Name, Email, Phone) VALUES ('$name', '$email', '$number)";
-
-    if ($conn->query($sql) === TRUE) {
-        echo "New record created successfully";
-    } else {
-        echo "Error: " . $sql . "<br>" . $conn->error;
+            // Execute the query
+            if (mysqli_query($conn, $sql)) {
+                echo "New record created successfully";
+            } else {
+                echo "Error: " . $sql . "<br>" . mysqli_error($conn);
+            }
+        } else {
+            echo "All fields are required.";
+        }
     }
 
-    $conn->close();
+    // Close the connection
+    mysqli_close($conn);
 }
-?>
